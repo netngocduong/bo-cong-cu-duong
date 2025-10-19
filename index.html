@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Bộ công cụ của Dương</title>
+<style>
+:root {
+  --sidebar-bg: #1e293b;
+  --sidebar-accent: #334155;
+  --bg: #0f172a;
+  --card: #1e293b;
+  --muted: #cbd5e1;
+  --accent: #38bdf8;
+  --text: #f8fafc;
+}
+* { box-sizing: border-box; transition: background-color .3s, color .3s; }
+body { margin: 0; font-family: Inter, Segoe UI, Arial; background: var(--bg); color: var(--text); }
+.app { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 260px; background: var(--sidebar-bg); color: white; padding: 24px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.brand { font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+.menu { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.menu button {
+  background: transparent; border: none; color: rgba(255,255,255,0.95); text-align: left;
+  padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 15px;
+  display: flex; gap: 10px; align-items: center;
+}
+.menu button:hover { background: rgba(255,255,255,0.08); }
+.menu button.active { background: white; color: var(--sidebar-bg); font-weight: 600; }
+.footer { margin-top: auto; font-size: 13px; color: rgba(255,255,255,0.9); }
+
+.main { flex: 1; padding: 28px; }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.card { background: var(--card); padding: 18px; border-radius: 12px; box-shadow: 0 6px 22px rgba(2,6,23,0.06); }
+.grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+.tool-wrap { display: none; animation: fade .18s ease both; }
+.tool-wrap.active { display: block; }
+textarea, input {
+  font-family: monospace; background: var(--card); color: var(--text);
+  border: 1px solid #475569; border-radius: 8px; padding: 8px; resize: vertical; width: 100%;
+}
+textarea.output { cursor: pointer; }
+button.small { padding: 8px 12px; border-radius: 8px; border: none; background: var(--accent); color: white; cursor: pointer; }
+h3.label { margin: 10px 0 5px; color: var(--muted); font-weight: 600; font-size: 15px; }
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (max-width:900px){ .sidebar{display:none}.main{padding:14px} }
+</style>
+</head>
+<body class="dark">
+<div class="app">
+  <aside class="sidebar card">
+    <div class="brand">🧰 Bộ công cụ của Dương</div>
+    <div class="menu" id="menu">
+      <button data-show="locCot" class="active">🔢 Lọc cột muốn giữ</button>
+      <button data-show="hoandoicot">🔄 Hoán đổi cột</button>
+      <button data-show="locloaibo">🔍 Lọc dữ liệu (giữ / loại)</button>
+      <button data-show="locbotrung">🚫 Lọc danh sách không trùng</button>
+      <button data-show="locidbm">🧭 Lọc IDBM</button>
+    </div>
+    <div class="footer">Phiên bản 5.0 — Dark Mode mặc định</div>
+  </aside>
+
+  <main class="main">
+    <div class="header">
+      <div>
+        <h1>🧰 Bộ công cụ của Dương</h1>
+        <div style="color:var(--muted)">Chọn công cụ từ menu bên trái</div>
+      </div>
+      <div><button class="small" id="toggleTheme">☀️</button></div>
+    </div>
+
+    <div class="grid">
+
+      <!-- Lọc cột muốn giữ -->
+      <section id="locCot" class="tool-wrap active card">
+        <h2>🔢 Lọc cột muốn giữ</h2>
+        <p style="color:var(--muted)">Nhập dữ liệu theo dạng A|B|C|D|E, mỗi dòng là một bản ghi.</p>
+        <textarea id="col_input" rows="6" placeholder="Ví dụ:&#10;A|B|C|D|E&#10;1|2|3|4|5"></textarea>
+        <p style="margin-top:10px;color:var(--muted)">Nhập cột muốn giữ (cách nhau bằng dấu phẩy hoặc dấu cách, ví dụ: 1,3 hoặc 1 3)</p>
+        <input id="col_keep" placeholder="Ví dụ: 1,3" />
+        <h3 class="label">Kết quả:</h3>
+        <textarea id="col_output" rows="6" readonly class="output" placeholder="Kết quả sẽ hiển thị ở đây..."></textarea>
+      </section>
+
+      <!-- Hoán đổi cột -->
+      <section id="hoandoicot" class="tool-wrap card">
+        <h2>🔄 Hoán đổi cột</h2>
+        <div><label>Cột 1</label><input id="col1" type="number" value="2" style="width:60px">
+        <label>Cột 2</label><input id="col2" type="number" value="3" style="width:60px"></div>
+        <textarea id="swap_input" rows="8" placeholder="a|b|c|d"></textarea>
+        <h3 class="label">Kết quả:</h3>
+        <textarea id="swap_output" rows="8" readonly class="output"></textarea>
+      </section>
+
+      <!-- Lọc dữ liệu giữ / loại -->
+      <section id="locloaibo" class="tool-wrap card">
+        <h2>🔍 Lọc dữ liệu (giữ / loại)</h2>
+        <h3 class="label">Lọc dữ liệu</h3>
+        <textarea id="keep_input" rows="6" placeholder="A|B"></textarea>
+        <h3 class="label">Giữ lại</h3>
+        <textarea id="keep_list" rows="6" placeholder="Nhập danh sách cần giữ..."></textarea>
+        <h3 class="label">Kết quả:</h3>
+        <textarea id="keep_removed" rows="6" readonly class="output"></textarea>
+      </section>
+
+      <!-- Lọc danh sách không trùng -->
+      <section id="locbotrung" class="tool-wrap card">
+        <h2>🚫 Lọc danh sách không trùng</h2>
+        <h3 class="label">Danh sách gốc</h3>
+        <textarea id="unique_a" rows="6" placeholder="1|A"></textarea>
+        <h3 class="label">Danh sách trùng</h3>
+        <textarea id="unique_b" rows="6" placeholder="1 2 3"></textarea>
+        <h3 class="label">Kết quả:</h3>
+        <textarea id="unique_out" rows="6" readonly class="output"></textarea>
+      </section>
+
+      <!-- Lọc IDBM -->
+      <section id="locidbm" class="tool-wrap card">
+        <h2>🧭 Lọc IDBM</h2>
+        <h3 class="label">Danh sách IDBM</h3>
+        <textarea id="map_a" rows="6" placeholder="Danh sách IDBM..."></textarea>
+        <h3 class="label">Danh sách IDTKQC</h3>
+        <textarea id="map_b" rows="6" placeholder="Danh sách IDTKQC..."></textarea>
+        <h3 class="label">Danh sách IDTKQC Live</h3>
+        <textarea id="map_live" rows="6" placeholder="Danh sách Live..."></textarea>
+        <h3 class="label">Kết quả:</h3>
+        <textarea id="map_out" rows="6" readonly></textarea>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+const buttons=document.querySelectorAll(".menu button");
+function showTool(id){
+  document.querySelectorAll(".tool-wrap").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  buttons.forEach(b=>b.classList.toggle("active",b.dataset.show===id));
+}
+buttons.forEach(b=>b.addEventListener("click",()=>showTool(b.dataset.show)));
+
+// Lọc cột muốn giữ
+function processColumns(){
+  const input=document.getElementById("col_input").value.trim();
+  const keepCols=document.getElementById("col_keep").value.trim().replace(/,/g," ").split(/\s+/).map(x=>parseInt(x)-1).filter(x=>!isNaN(x));
+  const lines=input.split(/\r?\n/).map(l=>l.trim()).filter(l=>l);
+  const result=lines.map(line=>{
+    const cols=line.split("|");
+    const kept=keepCols.map(i=>cols[i]||"").join("|");
+    return kept;
+  }).join("\n");
+  document.getElementById("col_output").value=result||"(Không có dữ liệu)";
+}
+document.getElementById("col_input").addEventListener("input",processColumns);
+document.getElementById("col_keep").addEventListener("input",processColumns);
+document.getElementById("col_output").addEventListener("click",()=>{col_output.select();document.execCommand("copy");});
+
+// Hoán đổi cột
+["col1","col2","swap_input"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{
+  const c1=parseInt(col1.value)-1,c2=parseInt(col2.value)-1;
+  swap_output.value=swap_input.value.split(/\n/).map(l=>{
+    let p=l.split("|");if(p[c1]&&p[c2]){[p[c1],p[c2]]=[p[c2],p[c1]];}
+    return p.join("|");
+  }).join("\n");
+}));
+
+// Lọc dữ liệu giữ/loại
+["keep_input","keep_list"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{
+  const a=keep_input.value.split(/\n/).map(l=>l.split("|")[0].trim()).filter(Boolean);
+  const b=keep_list.value.split(/\n/).map(l=>l.trim()).filter(Boolean);
+  keep_removed.value=a.filter(x=>!b.includes(x)).join("\n")||"Không có mục bị loại";
+}));
+keep_removed.addEventListener("click",()=>{keep_removed.select();document.execCommand("copy");});
+
+// Lọc danh sách không trùng
+["unique_a","unique_b"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{
+  const a=unique_a.value.split(/\n/).map(l=>l.split("|")[0].trim()).filter(Boolean);
+  const b=unique_b.value.split(/[\s\n]+/).filter(Boolean);
+  unique_out.value=a.filter(x=>!b.includes(x)).join("\n")||"Không có dữ liệu.";
+}));
+unique_out.addEventListener("click",()=>{unique_out.select();document.execCommand("copy");});
+
+// Mapping IDBM
+["map_a","map_b","map_live"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{
+  const a=map_a.value.split(/\n/).map(l=>l.split("|")[0].trim()).filter(Boolean);
+  const b=map_b.value.split(/\n/).map(l=>l.trim()).filter(Boolean);
+  const live=map_live.value.split(/\n/).map(l=>l.trim()).filter(Boolean);
+  const map={};b.forEach((v,i)=>map[v]=a[i]||"");
+  map_out.value=live.map(v=>map[v]||"Không tìm thấy").join("\n");
+}));
+
+// Dark Mode toggle
+const toggle=document.getElementById("toggleTheme");
+function applyTheme(dark){
+  document.body.classList.toggle("dark",dark);
+  toggle.textContent=dark?"☀️":"🌙";
+  localStorage.setItem("theme",dark?"dark":"light");
+}
+toggle.addEventListener("click",()=>applyTheme(!document.body.classList.contains("dark")));
+if(localStorage.getItem("theme")==="light")applyTheme(false); else applyTheme(true);
+</script>
+</body>
+</html>
