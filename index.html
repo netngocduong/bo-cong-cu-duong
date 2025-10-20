@@ -7,14 +7,13 @@
 <style>
 :root {
   --sidebar-bg: #1e293b;
-  --sidebar-accent: #334155;
   --bg: #0f172a;
   --card: #1e293b;
   --muted: #cbd5e1;
   --accent: #38bdf8;
   --text: #f8fafc;
 }
-* { box-sizing: border-box; transition: background-color .3s, color .3s; }
+* { box-sizing: border-box; transition: background-color .2s, color .2s; }
 body { margin: 0; font-family: Inter, Segoe UI, Arial; background: var(--bg); color: var(--text); }
 .app { display: flex; min-height: 100vh; }
 .sidebar {
@@ -46,7 +45,6 @@ textarea.output { cursor: pointer; }
 button.small { padding: 8px 12px; border-radius: 8px; border: none; background: var(--accent); color: white; cursor: pointer; }
 h3.label { margin: 10px 0 5px; color: var(--muted); font-weight: 600; font-size: 15px; }
 @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-@media (max-width:900px){ .sidebar{display:none}.main{padding:14px} }
 </style>
 </head>
 <body class="dark">
@@ -60,7 +58,7 @@ h3.label { margin: 10px 0 5px; color: var(--muted); font-weight: 600; font-size:
       <button data-show="locbotrung">🚫 Lọc danh sách không trùng</button>
       <button data-show="locidbm">🧭 Lọc IDBM</button>
     </div>
-    <div class="footer">Phiên bản 5.0 — Dark Mode mặc định</div>
+    <div class="footer">Phiên bản 6.1 — Hoán đổi và giữ 2 cột</div>
   </aside>
 
   <main class="main">
@@ -74,59 +72,148 @@ h3.label { margin: 10px 0 5px; color: var(--muted); font-weight: 600; font-size:
 
     <div class="grid">
 
-      <!-- Lọc cột muốn giữ -->
+      <!-- Lọc cột -->
       <section id="locCot" class="tool-wrap active card">
         <h2>🔢 Lọc cột muốn giữ</h2>
-        <p style="color:var(--muted)">Nhập dữ liệu theo dạng A|B|C|D|E, mỗi dòng là một bản ghi.</p>
-        <textarea id="col_input" rows="6" placeholder="Ví dụ:&#10;A|B|C|D|E&#10;1|2|3|4|5"></textarea>
-        <p style="margin-top:10px;color:var(--muted)">Nhập cột muốn giữ (cách nhau bằng dấu phẩy hoặc dấu cách, ví dụ: 1,3 hoặc 1 3)</p>
+        <textarea id="col_input" rows="6" placeholder="Ví dụ:&#10;A|B|C|D|E"></textarea>
         <input id="col_keep" placeholder="Ví dụ: 1,3" />
         <h3 class="label">Kết quả:</h3>
-        <textarea id="col_output" rows="6" readonly class="output" placeholder="Kết quả sẽ hiển thị ở đây..."></textarea>
+        <textarea id="col_output" rows="6" readonly class="output"></textarea>
       </section>
 
       <!-- Hoán đổi cột -->
       <section id="hoandoicot" class="tool-wrap card">
-        <h2>🔄 Hoán đổi cột</h2>
-        <div><label>Cột 1</label><input id="col1" type="number" value="2" style="width:60px">
-        <label>Cột 2</label><input id="col2" type="number" value="3" style="width:60px"></div>
-        <textarea id="swap_input" rows="8" placeholder="a|b|c|d"></textarea>
+        <h2>🔄 Hoán đổi và giữ 2 cột</h2>
+        <div style="margin-bottom:10px;">
+          <label>Cột 1:</label><input id="col1" type="number" value="2" style="width:60px;margin-right:12px;">
+          <label>Cột 2:</label><input id="col2" type="number" value="3" style="width:60px;margin-right:12px;">
+          <button id="btnSwap" class="small">Hoán đổi</button>
+        </div>
+        <textarea id="swap_input" rows="8" placeholder="A|B|C|D|E"></textarea>
         <h3 class="label">Kết quả:</h3>
         <textarea id="swap_output" rows="8" readonly class="output"></textarea>
       </section>
 
-      <!-- Các công cụ khác giữ nguyên -->
+      <!-- Lọc giữ / loại -->
+      <section id="locloaibo" class="tool-wrap card">
+        <h2>🔍 Lọc dữ liệu (giữ / loại)</h2>
+        <textarea id="keep_input" rows="6" placeholder="A|B"></textarea>
+        <textarea id="keep_list" rows="6" placeholder="Danh sách cần giữ..."></textarea>
+        <h3 class="label">Kết quả:</h3>
+        <textarea id="keep_removed" rows="6" readonly class="output"></textarea>
+      </section>
+
+      <!-- Lọc không trùng -->
+      <section id="locbotrung" class="tool-wrap card">
+        <h2>🚫 Lọc danh sách không trùng</h2>
+        <textarea id="unique_a" rows="6" placeholder="1|A"></textarea>
+        <textarea id="unique_b" rows="6" placeholder="1 2 3"></textarea>
+        <h3 class="label">Kết quả:</h3>
+        <textarea id="unique_out" rows="6" readonly class="output"></textarea>
+      </section>
+
+      <!-- Lọc IDBM -->
+      <section id="locidbm" class="tool-wrap card">
+        <h2>🧭 Lọc IDBM</h2>
+        <textarea id="map_a" rows="6" placeholder="Danh sách IDBM..."></textarea>
+        <textarea id="map_b" rows="6" placeholder="Danh sách IDTKQC..."></textarea>
+        <textarea id="map_live" rows="6" placeholder="Danh sách Live..."></textarea>
+        <h3 class="label">Kết quả:</h3>
+        <textarea id="map_out" rows="6" readonly></textarea>
+      </section>
+
     </div>
   </main>
 </div>
 
 <script>
-// Hoán đổi cột (đã sửa)
-function swapColumns() {
-  const c1 = parseInt(document.getElementById("col1").value) - 1;
-  const c2 = parseInt(document.getElementById("col2").value) - 1;
-  const input = document.getElementById("swap_input").value.trim();
+// ===== MENU =====
+const buttons=document.querySelectorAll(".menu button");
+function showTool(id){
+  document.querySelectorAll(".tool-wrap").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  buttons.forEach(b=>b.classList.toggle("active",b.dataset.show===id));
+}
+buttons.forEach(b=>b.addEventListener("click",()=>showTool(b.dataset.show)));
 
+// ===== LỌC CỘT =====
+function processColumns(){
+  const input=document.getElementById("col_input").value.trim();
+  const keepCols=document.getElementById("col_keep").value.trim().replace(/,/g," ").split(/\s+/).map(x=>parseInt(x)-1).filter(x=>!isNaN(x));
+  const lines=input.split(/\r?\n/).map(l=>l.trim()).filter(l=>l);
+  const result=lines.map(line=>{
+    const cols=line.split("|");
+    const kept=keepCols.map(i=>cols[i]||"").join("|");
+    return kept;
+  }).join("\n");
+  document.getElementById("col_output").value=result||"(Không có dữ liệu)";
+}
+document.getElementById("col_input").addEventListener("input",processColumns);
+document.getElementById("col_keep").addEventListener("input",processColumns);
+
+// ===== HOÁN ĐỔI & GIỮ 2 CỘT =====
+function swapAndKeepTwoColumns() {
+  const inputText = document.getElementById("swap_input").value.trim();
+  const c1 = parseInt(document.getElementById("col1").value, 10) - 1;
+  const c2 = parseInt(document.getElementById("col2").value, 10) - 1;
+
+  if (!inputText) {
+    document.getElementById("swap_output").value = "(Không có dữ liệu)";
+    return;
+  }
   if (isNaN(c1) || isNaN(c2) || c1 < 0 || c2 < 0) {
     document.getElementById("swap_output").value = "(Vui lòng nhập vị trí cột hợp lệ)";
     return;
   }
 
-  const lines = input.split(/\r?\n/);
+  const lines = inputText.split(/\r?\n/);
   const result = lines.map(line => {
-    if (!line.trim()) return ""; 
+    if (!line.trim()) return "";
     const cols = line.split("|");
     while (cols.length <= Math.max(c1, c2)) cols.push("");
-    [cols[c1], cols[c2]] = [cols[c2], cols[c1]];
-    return cols.join("|");
+    const temp = cols[c1];
+    cols[c1] = cols[c2];
+    cols[c2] = temp;
+    return [cols[c1], cols[c2]].join("|");
   }).join("\n");
 
   document.getElementById("swap_output").value = result || "(Không có dữ liệu)";
 }
+["col1","col2","swap_input"].forEach(id=>document.getElementById(id).addEventListener("input",swapAndKeepTwoColumns));
+document.getElementById("btnSwap").addEventListener("click",swapAndKeepTwoColumns);
 
-["col1", "col2", "swap_input"].forEach(id => {
-  document.getElementById(id).addEventListener("input", swapColumns);
-});
+// ===== LỌC GIỮ / LOẠI =====
+["keep_input","keep_list"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{
+  const a=keep_input.value.split(/\n/).map(l=>l.split("|")[0].trim()).filter(Boolean);
+  const b=keep_list.value.split(/\n/).map(l=>l.trim()).filter(Boolean);
+  keep_removed.value=a.filter(x=>!b.includes(x)).join("\n")||"Không có mục bị loại";
+}));
+
+// ===== LỌC KHÔNG TRÙNG =====
+["unique_a","unique_b"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{
+  const a=unique_a.value.split(/\n/).map(l=>l.split("|")[0].trim()).filter(Boolean);
+  const b=unique_b.value.split(/[\s\n]+/).filter(Boolean);
+  unique_out.value=a.filter(x=>!b.includes(x)).join("\n")||"Không có dữ liệu.";
+}));
+
+// ===== MAP IDBM =====
+["map_a","map_b","map_live"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{
+  const a=map_a.value.split(/\n/).map(l=>l.split("|")[0].trim()).filter(Boolean);
+  const b=map_b.value.split(/\n/).map(l=>l.trim()).filter(Boolean);
+  const live=map_live.value.split(/\n/).map(l=>l.trim()).filter(Boolean);
+  const map={};b.forEach((v,i)=>map[v]=a[i]||"");
+  map_out.value=live.map(v=>map[v]||"Không tìm thấy").join("\n");
+}));
+
+// ===== DARK MODE =====
+const toggle=document.getElementById("toggleTheme");
+function applyTheme(dark){
+  document.body.classList.toggle("dark",dark);
+  toggle.textContent=dark?"☀️":"🌙";
+  localStorage.setItem("theme",dark?"dark":"light");
+}
+toggle.addEventListener("click",()=>applyTheme(!document.body.classList.contains("dark")));
+if(localStorage.getItem("theme")==="light")applyTheme(false); else applyTheme(true);
 </script>
 </body>
 </html>
